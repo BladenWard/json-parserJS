@@ -26,9 +26,9 @@ function parseJson(json) {
        //     return parseObject();
        // } else if (char === '[') {
        //     return parseArray();
-       // } else if (char === '"') {
-       //     return parseString();
-        if (char === 't') {
+        if (char === '"') {
+            return parseString();
+        } else if (char === 't') {
             return parseTrue();
         } else if (char === 'f') {
             return parseFalse();
@@ -39,6 +39,24 @@ function parseJson(json) {
         } else {
             throw new Error('Invalid JSON');
         }
+    }
+
+    function parseString() {
+        let str = '';
+        let char = json[index];
+
+        while (index < json.length) {
+            char = json[index];
+            if (char === '"') {
+                index++;
+                return str;
+            } else {
+                str += char;
+                index++;
+            }
+        }
+
+        throw new Error('Invalid JSON');
     }
 
     function parseTrue() {
@@ -94,5 +112,5 @@ function parseJson(json) {
 }
 
 //const jsonData1 = parseJson('{ "name": "John", "age": 30 }');
-const jsonData1 = parseJson('     true  ');
+const jsonData1 = parseJson('     "hosn"  ');
 console.log("JSON:", jsonData1);
