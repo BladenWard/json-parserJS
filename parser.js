@@ -5,28 +5,18 @@ function parseJson(json) {
 
     let index = 0;
 
-    function stripWhitespace() {
-        while (index < json.length) {
-            const char = json[index];
-            if (char === ' ' || char === '\n' || char === '\t' || char === '\r')
-                index++;
-            else
-                break;
-        }
-    }
+    json = json.replace(/\s/g, ""); // remove all whitespaces
 
     parseValue();
 
-    // im gonna write a recursive descent parser here
     function parseValue() {
-        stripWhitespace();
         const char = json[index];
 
-       // if (char === '{') {
-       //     return parseObject();
-       // } else if (char === '[') {
-       //     return parseArray();
-        if (char === '"') {
+        if (char === '{') {
+            return parseObject();
+        } else if (char === '[') {
+            return parseArray();
+        } else if (char === '"') {
             return parseString();
         } else if (char === 't') {
             return parseTrue();
@@ -41,19 +31,112 @@ function parseJson(json) {
         }
     }
 
-    function parseString() {
-        let str = '';
-        let char = json[index];
+    function parseObject() {
+        let obj = {};
+        index++;
+
+        if (json[index] === '}') {
+            index++;
+            return obj;
+        }
 
         while (index < json.length) {
-            char = json[index];
+            const key = parseString();
+            if (json[index] !== ':') {
+                throw new Error('Invalid JSON');
+            }
+            index++;
+            const value = parseValue();
+            obj[key] = value;
+
+            if (json[index] === '}') {
+                index++;
+                return obj;
+            } else if (json[index] !== ',') {
+                throw new Error('Invalid JSON');
+            }
+
+            index++;
+        }
+
+        throw new Error('Invalid JSON');
+    }
+
+    function parseArray() {
+        let arr = [];
+        index++;
+
+        if (json[index] === ']') {
+            index++;
+            return arr;
+        }
+
+        while (index < json.length) {
+            arr.push(parseValue());
+            if (json[index] === ']') {
+                index++;
+                return arr;
+            }
+            if (json[index] === ',') {
+                index++;
+            } else {
+                console.log("JSON:", json[index]);
+                throw new Error('Invalid JSON');
+            }
+        }
+
+        throw new Error('Invalid JSON');
+    }
+
+    function parseString() {
+        let str = '';
+        index++;
+
+        while (index < json.length) {
+            const char = json[index];
             if (char === '"') {
                 index++;
                 return str;
+            } else if (char === '\\') {
+                index++;
+                const escapedChar = json[index];
+                switch (escapedChar) {
+                    case '"':
+                        str += '"';
+                        break;
+                    case '\\':
+                        str += '\\';
+                        break;
+                    case '/':
+                        str += '/';
+                        break;
+                    case 'b':
+                        str += '\b';
+                        break;
+                    case 'f':
+                        str += '\f';
+                        break;
+                    case 'n':
+                        str += '\n';
+                        break;
+                    case 'r':
+                        str += '\r';
+                        break;
+                    case 't':
+                        str += '\t';
+                        break;
+                    case 'u':
+                        const hexCode = json.substr(index + 1, 4);
+                        str += String.fromCharCode(parseInt(hexCode, 16));
+                        index += 4;
+                        break;
+                    default:
+                        throw new Error('Invalid Escape Character');
+                }
             } else {
                 str += char;
-                index++;
             }
+            index++;
         }
 
         throw new Error('Invalid JSON');
@@ -111,6 +194,5 @@ function parseJson(json) {
     return json;
 }
 
-//const jsonData1 = parseJson('{ "name": "John", "age": 30 }');
-const jsonData1 = parseJson('     "hosn"  ');
+const jsonData1 = parseJson('{ "name": "John", "age": 30 }');
 console.log("JSON:", jsonData1);
