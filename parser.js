@@ -6,8 +6,13 @@ function parseJson(json) {
     let index = 0;
 
     function stripWhitespace() {
-        json.trimStart();
-        index = 0;
+        while (index < json.length) {
+            const char = json[index];
+            if (char === ' ' || char === '\n' || char === '\t' || char === '\r')
+                index++;
+            else
+                break;
+        }
     }
 
     parseValue();
@@ -27,10 +32,19 @@ function parseJson(json) {
        //     return parseTrue();
        // } else if (char === 'f') {
        //     return parseFalse();
-       // } else if (char === 'n') {
-       //     return parseNull();
-        if (char === '-' || (char >= '0' && char <= '9')) {
+        if (char === 'n') {
+            return parseNull();
+        } else if (char === '-' || (char >= '0' && char <= '9')) {
             return parseNumber();
+        } else {
+            throw new Error('Invalid JSON');
+        }
+    }
+
+    function parseNull() {
+        if (json.substr(index, 4) === 'null') {
+            index += 4;
+            return null;
         } else {
             throw new Error('Invalid JSON');
         }
@@ -62,5 +76,5 @@ function parseJson(json) {
 }
 
 //const jsonData1 = parseJson('{ "name": "John", "age": 30 }');
-const jsonData1 = parseJson('30 ');
+const jsonData1 = parseJson('     false  ');
 console.log("JSON:", jsonData1);
